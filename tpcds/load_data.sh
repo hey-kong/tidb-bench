@@ -23,8 +23,8 @@ generate_data()
 ## create database
 create_database()
 {
-    mysql -h $HOST -P $PORT -u $USER -D test -e "drop database if exists $DATABASE;"
-    mysql -h $HOST -P $PORT -u $USER -D test -e "create database $DATABASE;"
+    mysql -h $HOST -P $PORT -u $USER -e "drop database if exists $DATABASE;"
+    mysql -h $HOST -P $PORT -u $USER -e "create database $DATABASE;"
     mysql -h $HOST -P $PORT -u $USER -D $DATABASE < tools/tpcds.sql
 }
 

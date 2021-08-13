@@ -1,40 +1,40 @@
 --
--- Legal Notice
---
--- This document and associated source code (the "Work") is a part of a
--- benchmark specification maintained by the TPC.
---
--- The TPC reserves all right, title, and interest to the Work as provided
--- under U.S. and international laws, including without limitation all patent
--- and trademark rights therein.
---
--- No Warranty
---
--- 1.1 TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE INFORMATION
---     CONTAINED HEREIN IS PROVIDED "AS IS" AND WITH ALL FAULTS, AND THE
---     AUTHORS AND DEVELOPERS OF THE WORK HEREBY DISCLAIM ALL OTHER
---     WARRANTIES AND CONDITIONS, EITHER EXPRESS, IMPLIED OR STATUTORY,
---     INCLUDING, BUT NOT LIMITED TO, ANY (IF ANY) IMPLIED WARRANTIES,
---     DUTIES OR CONDITIONS OF MERCHANTABILITY, OF FITNESS FOR A PARTICULAR
---     PURPOSE, OF ACCURACY OR COMPLETENESS OF RESPONSES, OF RESULTS, OF
---     WORKMANLIKE EFFORT, OF LACK OF VIRUSES, AND OF LACK OF NEGLIGENCE.
---     ALSO, THERE IS NO WARRANTY OR CONDITION OF TITLE, QUIET ENJOYMENT,
---     QUIET POSSESSION, CORRESPONDENCE TO DESCRIPTION OR NON-INFRINGEMENT
---     WITH REGARD TO THE WORK.
--- 1.2 IN NO EVENT WILL ANY AUTHOR OR DEVELOPER OF THE WORK BE LIABLE TO
---     ANY OTHER PARTY FOR ANY DAMAGES, INCLUDING BUT NOT LIMITED TO THE
---     COST OF PROCURING SUBSTITUTE GOODS OR SERVICES, LOST PROFITS, LOSS
---     OF USE, LOSS OF DATA, OR ANY INCIDENTAL, CONSEQUENTIAL, DIRECT,
+-- Legal Notice 
+-- 
+-- This document and associated source code (the "Work") is a part of a 
+-- benchmark specification maintained by the TPC. 
+-- 
+-- The TPC reserves all right, title, and interest to the Work as provided 
+-- under U.S. and international laws, including without limitation all patent 
+-- and trademark rights therein. 
+-- 
+-- No Warranty 
+-- 
+-- 1.1 TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE INFORMATION 
+--     CONTAINED HEREIN IS PROVIDED "AS IS" AND WITH ALL FAULTS, AND THE 
+--     AUTHORS AND DEVELOPERS OF THE WORK HEREBY DISCLAIM ALL OTHER 
+--     WARRANTIES AND CONDITIONS, EITHER EXPRESS, IMPLIED OR STATUTORY, 
+--     INCLUDING, BUT NOT LIMITED TO, ANY (IF ANY) IMPLIED WARRANTIES, 
+--     DUTIES OR CONDITIONS OF MERCHANTABILITY, OF FITNESS FOR A PARTICULAR 
+--     PURPOSE, OF ACCURACY OR COMPLETENESS OF RESPONSES, OF RESULTS, OF 
+--     WORKMANLIKE EFFORT, OF LACK OF VIRUSES, AND OF LACK OF NEGLIGENCE. 
+--     ALSO, THERE IS NO WARRANTY OR CONDITION OF TITLE, QUIET ENJOYMENT, 
+--     QUIET POSSESSION, CORRESPONDENCE TO DESCRIPTION OR NON-INFRINGEMENT 
+--     WITH REGARD TO THE WORK. 
+-- 1.2 IN NO EVENT WILL ANY AUTHOR OR DEVELOPER OF THE WORK BE LIABLE TO 
+--     ANY OTHER PARTY FOR ANY DAMAGES, INCLUDING BUT NOT LIMITED TO THE 
+--     COST OF PROCURING SUBSTITUTE GOODS OR SERVICES, LOST PROFITS, LOSS 
+--     OF USE, LOSS OF DATA, OR ANY INCIDENTAL, CONSEQUENTIAL, DIRECT, 
 --     INDIRECT, OR SPECIAL DAMAGES WHETHER UNDER CONTRACT, TORT, WARRANTY,
---     OR OTHERWISE, ARISING IN ANY WAY OUT OF THIS OR ANY OTHER AGREEMENT
---     RELATING TO THE WORK, WHETHER OR NOT SUCH AUTHOR OR DEVELOPER HAD
---     ADVANCE NOTICE OF THE POSSIBILITY OF SUCH DAMAGES.
---
+--     OR OTHERWISE, ARISING IN ANY WAY OUT OF THIS OR ANY OTHER AGREEMENT 
+--     RELATING TO THE WORK, WHETHER OR NOT SUCH AUTHOR OR DEVELOPER HAD 
+--     ADVANCE NOTICE OF THE POSSIBILITY OF SUCH DAMAGES. 
+-- 
 -- Contributors:
---
+-- 
  define YEAR= random(1998, 2000, uniform);
  define DAY = random(1,28,uniform);
- define _LIMIT=100;
+ define _LIMIT=100; 
 
 with  cross_items as
  (select i_item_sk ss_item_sk
@@ -48,7 +48,7 @@ with  cross_items as
  where ss_item_sk = iss.i_item_sk
    and ss_sold_date_sk = d1.d_date_sk
    and d1.d_year between [YEAR] AND [YEAR] + 2
- intersect
+ and exists (
  select ics.i_brand_id
      ,ics.i_class_id
      ,ics.i_category_id
@@ -58,7 +58,7 @@ with  cross_items as
  where cs_item_sk = ics.i_item_sk
    and cs_sold_date_sk = d2.d_date_sk
    and d2.d_year between [YEAR] AND [YEAR] + 2
- intersect
+ ) and exists (
  select iws.i_brand_id
      ,iws.i_class_id
      ,iws.i_category_id
@@ -67,7 +67,7 @@ with  cross_items as
      ,date_dim d3
  where ws_item_sk = iws.i_item_sk
    and ws_sold_date_sk = d3.d_date_sk
-   and d3.d_year between [YEAR] AND [YEAR] + 2)
+   and d3.d_year between [YEAR] AND [YEAR] + 2)) t1
  where i_brand_id = brand_id
       and i_class_id = class_id
       and i_category_id = category_id
@@ -80,13 +80,13 @@ with  cross_items as
            ,date_dim
        where ss_sold_date_sk = d_date_sk
          and d_year between [YEAR] and [YEAR] + 2
-       union all
-       select cs_quantity quantity
+       union all 
+       select cs_quantity quantity 
              ,cs_list_price list_price
        from catalog_sales
            ,date_dim
        where cs_sold_date_sk = d_date_sk
-         and d_year between [YEAR] and [YEAR] + 2
+         and d_year between [YEAR] and [YEAR] + 2 
        union all
        select ws_quantity quantity
              ,ws_list_price list_price
@@ -105,7 +105,7 @@ with  cross_items as
        where ss_item_sk in (select ss_item_sk from cross_items)
          and ss_item_sk = i_item_sk
          and ss_sold_date_sk = d_date_sk
-         and d_year = [YEAR]+2
+         and d_year = [YEAR]+2 
          and d_moy = 11
        group by i_brand_id,i_class_id,i_category_id
        having sum(ss_quantity*ss_list_price) > (select average_sales from avg_sales)
@@ -117,7 +117,7 @@ with  cross_items as
        where cs_item_sk in (select ss_item_sk from cross_items)
          and cs_item_sk = i_item_sk
          and cs_sold_date_sk = d_date_sk
-         and d_year = [YEAR]+2
+         and d_year = [YEAR]+2 
          and d_moy = 11
        group by i_brand_id,i_class_id,i_category_id
        having sum(cs_quantity*cs_list_price) > (select average_sales from avg_sales)
@@ -134,10 +134,10 @@ with  cross_items as
        group by i_brand_id,i_class_id,i_category_id
        having sum(ws_quantity*ws_list_price) > (select average_sales from avg_sales)
  ) y
- group by rollup (channel, i_brand_id,i_class_id,i_category_id)
+ group by channel, i_brand_id,i_class_id,i_category_id
  order by channel,i_brand_id,i_class_id,i_category_id
  [_LIMITC];
-
+ 
  with  cross_items as
  (select i_item_sk ss_item_sk
  from item,
@@ -150,7 +150,7 @@ with  cross_items as
  where ss_item_sk = iss.i_item_sk
    and ss_sold_date_sk = d1.d_date_sk
    and d1.d_year between [YEAR] AND [YEAR] + 2
- intersect
+ and exists(
  select ics.i_brand_id
      ,ics.i_class_id
      ,ics.i_category_id
@@ -160,7 +160,7 @@ with  cross_items as
  where cs_item_sk = ics.i_item_sk
    and cs_sold_date_sk = d2.d_date_sk
    and d2.d_year between [YEAR] AND [YEAR] + 2
- intersect
+ ) and exists (
  select iws.i_brand_id
      ,iws.i_class_id
      ,iws.i_category_id
@@ -169,7 +169,7 @@ with  cross_items as
      ,date_dim d3
  where ws_item_sk = iws.i_item_sk
    and ws_sold_date_sk = d3.d_date_sk
-   and d3.d_year between [YEAR] AND [YEAR] + 2) x
+   and d3.d_year between [YEAR] AND [YEAR] + 2)) x
  where i_brand_id = brand_id
       and i_class_id = class_id
       and i_category_id = category_id
@@ -196,10 +196,22 @@ with  cross_items as
            ,date_dim
        where ws_sold_date_sk = d_date_sk
          and d_year between [YEAR] and [YEAR] + 2) x)
- [_LIMITA] select [_LIMITB] * from
+ [_LIMITA] select [_LIMITB] this_year.channel ty_channel
+                           ,this_year.i_brand_id ty_brand
+                           ,this_year.i_class_id ty_class
+                           ,this_year.i_category_id ty_category
+                           ,this_year.sales ty_sales
+                           ,this_year.number_sales ty_number_sales
+                           ,last_year.channel ly_channel
+                           ,last_year.i_brand_id ly_brand
+                           ,last_year.i_class_id ly_class
+                           ,last_year.i_category_id ly_category
+                           ,last_year.sales ly_sales
+                           ,last_year.number_sales ly_number_sales 
+ from
  (select 'store' channel, i_brand_id,i_class_id,i_category_id
         ,sum(ss_quantity*ss_list_price) sales, count(*) number_sales
- from store_sales
+ from store_sales 
      ,item
      ,date_dim
  where ss_item_sk in (select ss_item_sk from cross_items)
